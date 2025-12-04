@@ -7,13 +7,15 @@
 // - Auto-create /uploads & /reports
 // ==========================
 
+// ==========================
+// PRASA BACKEND - FINAL VERSION
+// ONE API + CORS FIX
+// ==========================
+
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2";
 import dotenv from "dotenv";
-import path from "path";
-import multer from "multer";
-import fs from "fs";
 
 dotenv.config();
 
@@ -30,6 +32,9 @@ app.use(
     allowedHeaders: ["Content-Type"]
   })
 );
+
+// 🔥 VERY IMPORTANT — FIX OPTIONS (preflight)
+app.options("/api/app", cors());   // ← ← ← ADD THIS LINE
 
 // =========================
 // MySQL Database Connection
@@ -63,10 +68,7 @@ app.post("/api/app", async (req, res) => {
           "SELECT * FROM Employees WHERE empId = ? AND password = ?",
           [empId, password],
           (err, results) => {
-            if (err) {
-              console.error(err);
-              return res.json({ success: false, message: "Server Error" });
-            }
+            if (err) return res.json({ success: false, message: "Server Error" });
 
             if (results.length === 0) {
               return res.json({ success: false, message: "Invalid ID or Password" });
