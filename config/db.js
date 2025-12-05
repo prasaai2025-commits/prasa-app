@@ -4,7 +4,9 @@ const fs = require("fs");
 const path = require("path");
 
 const pool = mysql.createPool({
-  connectionLimit: 10,
+  waitForConnections: true,
+  connectionLimit: 20,
+  queueLimit: 0,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
@@ -13,10 +15,14 @@ const pool = mysql.createPool({
   ssl:
     process.env.DB_SSL && process.env.DB_SSL.toLowerCase() === "true"
       ? {
-          // If you uploaded CA cert to backend/certs/ca.pem
           ca: fs.readFileSync(path.join(__dirname, "..", "certs", "ca.pem")),
         }
-      : false,
+      : undefined,
 });
 
-module.exports = pool;
+// 🔥 Keeps Railway / Render DB awake → SUPER FAST login
+setInterval(() => {
+  pool.query("SELECT 1");
+}, 5000);
+
+module.exports = pool.promise();
