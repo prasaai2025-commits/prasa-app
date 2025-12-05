@@ -1,88 +1,103 @@
-// ============================
-// PRASA Backend - FINAL WORKING
-// ============================
+// =============================
+// PRASA FINAL BACKEND SERVER
+// =============================
 
 console.log("🔥 PRASA Backend Starting...");
 
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 require("dotenv").config();
 
 const app = express();
 
-// ============================
-// ✅ GLOBAL CORS FIX
-// ============================
-app.use(
-  cors({
-    origin: "*",
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: "Content-Type, Authorization",
-  })
-);
+// -----------------------------
+// CORS FIX (FINAL)
+// -----------------------------
+app.use(cors({
+  origin: "*",
+  methods: "GET,POST,PUT,DELETE,OPTIONS",
+  allowedHeaders: "Content-Type, Authorization"
+}));
 
-app.options("*", cors());
-
-// ============================
-// MIDDLEWARE
-// ============================
 app.use(express.json());
 
-// ============================
-// MYSQL CONNECTION
-// ============================
+// -----------------------------
+// MYSQL CONNECTION (AIVEN)
+// -----------------------------
 const db = mysql.createPool({
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
+  port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: false }
 });
 
-const safeQuery = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.query(sql, params, (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-
-// ============================
-// ROUTES
-// ============================
+// -----------------------------
+// TEST ROUTE
+// -----------------------------
 app.get("/", (req, res) => {
-  res.send("🚀 PRASA Backend Running (CORS Enabled)");
+  res.send("🚀 PRASA Backend Working!");
 });
 
-// LOGIN
+// -----------------------------
+// LOGIN ROUTE (100% FIXED)
+// -----------------------------
 app.post("/login", async (req, res) => {
   try {
     const { empld, password } = req.body;
 
+    if (!empld || !password) {
+      return res.json({ success: false, message: "Missing credentials" });
+    }
+
     const sql = `
-      SELECT id, empld, empName AS name, email, phone, department, role, joiningDate
+      SELECT 
+        id,
+        empld,
+        empName,
+        email,
+        phone,
+        department,
+        role,
+        joiningDate
       FROM Employees
       WHERE empld = ? AND password = ?
       LIMIT 1
     `;
 
-    const result = await safeQuery(sql, [empld, password]);
+    const [rows] = await db.query(sql, [empld, password]);
 
-    if (result.length === 0)
-      return res.json({ success: false, message: "Invalid Employee ID or Password" });
+    if (rows.length === 0) {
+      return res.json({ success: false, message: "Invalid credentials" });
+    }
 
-    res.json({ success: true, employee: result[0] });
+    const emp = rows[0];
+
+    return res.json({
+      success: true,
+      employee: {
+        id: emp.id,
+        empld: emp.empld,
+        name: emp.empName,
+        email: emp.email,
+        phone: emp.phone,
+        department: emp.department,
+        role: emp.role,
+        joiningDate: emp.joiningDate
+      }
+    });
+
   } catch (err) {
     console.error("Login Error:", err);
-    res.json({ success: false, message: "Server error during login" });
+    return res.json({ success: false, message: "Server error: " + err.message });
   }
 });
 
-// ============================
+// -----------------------------
 // START SERVER
-// ============================
+// -----------------------------
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on PORT ${PORT}`);
