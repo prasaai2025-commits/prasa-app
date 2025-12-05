@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server-fixed.js"
+    "start": "node server-final.js"
 
   },
   "dependencies": {
