@@ -1,32 +1,29 @@
-/* -------------------------------------------
-   🚀 PRASA BACKEND – WORKING CORS + MYSQL
--------------------------------------------- */
-
-console.log("🔥 PRASA Backend Starting...");
-
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2/promise"); // IMPORTANT 🔥 promise version
+const bodyParser = require("body-parser");
 require("dotenv").config();
+const mysql = require("mysql2/promise");
 
 const app = express();
 
-/* -------------------------------------------
-   🟢 GLOBAL CORS FIX (THIS SOLVES YOUR ERROR)
--------------------------------------------- */
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// -------------------------------------------------------
+// 🔥 FIXED CORS (Render + Cloudflare Compatible)
+// -------------------------------------------------------
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");  
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
 
+app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
-/* -------------------------------------------
-   🟢 MYSQL CONNECTION (AIVEN)
--------------------------------------------- */
+// -------------------------------------------------------
+// 🔥 MYSQL (AIVEN + DBVEAR) — PROMISE VERSION
+// -------------------------------------------------------
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -36,40 +33,48 @@ const db = mysql.createPool({
   ssl: { rejectUnauthorized: false },
 });
 
-/* -------------------------------------------
-   TEST ROUTE
--------------------------------------------- */
+// Helper
+async function runQuery(sql, params = []) {
+  const [rows] = await db.query(sql, params);
+  return rows;
+}
+
+// -------------------------------------------------------
+// ROOT TEST
+// -------------------------------------------------------
 app.get("/", (req, res) => {
-  res.send("🔥 PRASA Backend is running with CORS + MySQL!");
+  res.send("Backend running with FULL CORS FIX ✔️");
 });
 
-/* -------------------------------------------
-   🟢 LOGIN ROUTE (WORKS WITH DB)
--------------------------------------------- */
+// -------------------------------------------------------
+// LOGIN ROUTE
+// -------------------------------------------------------
 app.post("/login", async (req, res) => {
   try {
     const { empld, password } = req.body;
 
-    const [rows] = await db.query(
-      `SELECT id, empld, empName, email, phone, department, role, joiningDate 
-       FROM Employees 
-       WHERE empld = ? AND password = ? LIMIT 1`,
-      [empld, password]
-    );
+    const sql = `
+      SELECT id, empld, empName, email, phone, department, role, joiningDate
+      FROM Employees
+      WHERE empld = ? AND password = ?
+      LIMIT 1
+    `;
+
+    const rows = await runQuery(sql, [empld, password]);
 
     if (rows.length === 0) {
-      return res.json({ success: false, message: "Invalid Employee ID or Password" });
+      return res.json({ success: false, message: "Invalid credentials" });
     }
 
-    res.json({ success: true, employee: rows[0] });
+    return res.json({ success: true, employee: rows[0] });
   } catch (err) {
-    console.error("Login Error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.log("Login Error:", err);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
-/* -------------------------------------------
-   START SERVER
--------------------------------------------- */
+// -------------------------------------------------------
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log("🔥 Server running on port " + PORT)
+);
