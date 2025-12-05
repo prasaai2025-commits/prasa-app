@@ -1,124 +1,89 @@
-///////////////////////////////////////////////////////////
-//  PRASA BACKEND - FINAL CORS + MYSQL + LOGIN FIX
-///////////////////////////////////////////////////////////
+// ============================
+// PRASA Backend - FINAL WORKING
+// ============================
 
 console.log("🔥 PRASA Backend Starting...");
 
 const express = require("express");
 const cors = require("cors");
+const mysql = require("mysql2");
 require("dotenv").config();
-const mysql = require("mysql2/promise");  // IMPORTANT: PROMISE VERSION
 
 const app = express();
 
-// --------------------------------------------------------
-// CORS FIX (WORKS FOR LOCALHOST 3000, 3001, AND RENDER)
-// --------------------------------------------------------
+// ============================
+// ✅ GLOBAL CORS FIX
+// ============================
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001", "*"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: "*",
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
   })
 );
+
 app.options("*", cors());
 
-// --------------------------------------------------------
-// BODY PARSER
-// --------------------------------------------------------
+// ============================
+// MIDDLEWARE
+// ============================
 app.use(express.json());
 
-// --------------------------------------------------------
-// MYSQL CONNECTION (AIVEN DB)
-// --------------------------------------------------------
+// ============================
+// MYSQL CONNECTION
+// ============================
 const db = mysql.createPool({
   host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
   user: process.env.DB_USER,
-  port: process.env.DB_PORT,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   ssl: { rejectUnauthorized: false },
 });
 
-// TEST DB
-app.get("/", (req, res) => res.send("🚀 PRASA Backend Running Successfully!"));
+const safeQuery = (sql, params = []) =>
+  new Promise((resolve, reject) => {
+    db.query(sql, params, (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
 
-// --------------------------------------------------------
-// LOGIN ROUTE (THE MOST IMPORTANT FIXED)
-// --------------------------------------------------------
+// ============================
+// ROUTES
+// ============================
+app.get("/", (req, res) => {
+  res.send("🚀 PRASA Backend Running (CORS Enabled)");
+});
+
+// LOGIN
 app.post("/login", async (req, res) => {
   try {
     const { empld, password } = req.body;
 
-    if (!empld || !password)
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing credentials" });
+    const sql = `
+      SELECT id, empld, empName AS name, email, phone, department, role, joiningDate
+      FROM Employees
+      WHERE empld = ? AND password = ?
+      LIMIT 1
+    `;
 
-    const [rows] = await db.query(
-      `SELECT id, empld, empName, email, phone, department, role, joiningDate 
-       FROM Employees WHERE empld=? AND password=? LIMIT 1`,
-      [empld, password]
-    );
+    const result = await safeQuery(sql, [empld, password]);
 
-    if (rows.length === 0)
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
+    if (result.length === 0)
+      return res.json({ success: false, message: "Invalid Employee ID or Password" });
 
-    res.json({ success: true, employee: rows[0] });
+    res.json({ success: true, employee: result[0] });
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Login Error:", err);
+    res.json({ success: false, message: "Server error during login" });
   }
 });
 
-// --------------------------------------------------------
-// TRAVEL EXPENSES
-// --------------------------------------------------------
-app.get("/travel-expenses", async (req, res) => {
-  try {
-    const { empld } = req.query;
-    const [rows] = await db.query(
-      `SELECT * FROM TravelExpenses WHERE empld=? ORDER BY id DESC`,
-      [empld]
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-app.post("/travel-expenses", async (req, res) => {
-  try {
-    const { empld, travel_date, purpose, amount, location_from, location_to } =
-      req.body;
-
-    const [result] = await db.query(
-      `INSERT INTO TravelExpenses 
-       (empld, travel_date, purpose, amount, location_from, location_to, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [
-        empld,
-        travel_date,
-        purpose,
-        amount,
-        location_from || null,
-        location_to || null,
-      ]
-    );
-
-    res.json({ success: true, id: result.insertId });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// --------------------------------------------------------
+// ============================
 // START SERVER
-// --------------------------------------------------------
+// ============================
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, "0.0.0.0", () =>
-  console.log(`🚀 Backend running on ${PORT}`)
-);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on PORT ${PORT}`);
+});
