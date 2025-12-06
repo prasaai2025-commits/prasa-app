@@ -31,7 +31,7 @@ app.use(express.json());
 
 // -----------------------------
 // STATIC FILES (for bills)
-//  => any path saved like /files/EMP001/filename.pdf
+//    any saved path like /files/EMP001/filename.pdf
 // -----------------------------
 app.use("/files", express.static(path.join(__dirname, "uploads")));
 
@@ -64,7 +64,7 @@ app.get("/", (req, res) => {
 });
 
 // -----------------------------
-// LOGIN  (Employees table)
+// LOGIN (Employees table)
 // Uses empId column, but returns as empld for frontend
 // -----------------------------
 app.post("/login", async (req, res) => {
@@ -104,7 +104,7 @@ app.post("/login", async (req, res) => {
 });
 
 // -----------------------------
-// TRAVEL EXPENSES  (uses column `empld` in table)
+// TRAVEL EXPENSES  (table has column `empld`)
 // -----------------------------
 app.get("/travel-expenses", async (req, res) => {
   try {
@@ -158,7 +158,7 @@ app.post("/travel-expenses", async (req, res) => {
 });
 
 // -----------------------------
-// TICKET EXPENSES  (uses column `empld` in table)
+// TICKET EXPENSES  (table has column `empld`)
 // -----------------------------
 app.get("/ticket-expenses", async (req, res) => {
   try {
@@ -203,7 +203,7 @@ app.post("/ticket-expenses", async (req, res) => {
 
 // -----------------------------------------------------
 // BILLS UPLOAD + HISTORY  (stored inside backend/uploads)
-// uses column `empld` in Bills table
+// Bills table uses column `empld`
 // -----------------------------------------------------
 
 // Folder: backend/uploads/<empld>/
@@ -255,7 +255,7 @@ app.post("/upload-bills", upload.array("bills", 10), async (req, res) => {
       };
     });
 
-    // Bills table MUST use `empld` now:
+    // Bills table (MySQL) should be:
     //
     // CREATE TABLE Bills (
     //   id INT AUTO_INCREMENT PRIMARY KEY,
