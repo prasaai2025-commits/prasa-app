@@ -1,5 +1,8 @@
-const mysql = require("mysql2/promise");
-require("dotenv").config();
+import mysql from "mysql2/promise";
+import dotenv from "dotenv";
+
+// 🔥 LOAD ENV HERE (CRITICAL FIX)
+dotenv.config();
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -7,9 +10,24 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
+
+  ssl: {
+    rejectUnauthorized: false,
+  },
+
   waitForConnections: true,
   connectionLimit: 10,
+  queueLimit: 0,
 });
 
-module.exports = pool;
+// ✅ OPTIONAL: verify connection once
+pool.getConnection()
+  .then(conn => {
+    console.log("✅ MySQL connected as:", process.env.DB_USER);
+    conn.release();
+  })
+  .catch(err => {
+    console.error("❌ MySQL connection failed:", err);
+  });
+
+export default pool;

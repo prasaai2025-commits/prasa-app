@@ -1,39 +1,43 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const authRoutes = require("./routes/auth.routes");
-const travelRoutes = require("./routes/travel.routes");
-const ticketRoutes = require("./routes/ticket.routes");
-const historyRoutes = require("./routes/history.routes");
+import authRoutes from "./routes/auth.routes.js";
+import expenseRoutes from "./routes/expenses.routes.js";
+import ticketRoutes from "./routes/ticketSystem.routes.js";
+import historyRoutes from "./routes/history.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+
+dotenv.config();
 
 const app = express();
 
-/* ✅ CORS – frontend → backend */
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:3003",
-    "http://localhost:3004",
-    "https://prasa-app-yde3.onrender.com"
-  ],
-  credentials: true
-}));
+/* 🔐 CORS – allow frontend */
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 
+/* BODY PARSERS */
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-/* ✅ ONE API */
+/* ROUTES – ONE API */
 app.use("/api/auth", authRoutes);
-app.use("/api/travel", travelRoutes);
-app.use("/api/ticket", ticketRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/ticket-system", ticketRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/admin", adminRoutes);
 
-/* Health check */
+/* HEALTH CHECK */
 app.get("/", (req, res) => {
-  res.send("PRASA API is running 🚀");
+  res.status(200).send("PRASA API running");
 });
 
+/* RENDER PORT */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Backend running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
