@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.prasa.app',
+  appId: 'com.prasa.com',
   appName: 'prasa-app',
   webDir: 'build'
 };
