@@ -1,0 +1,63 @@
+/* Page background */
+.dashboard-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f3d2e, #eaf5ea);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top bar */
+.dashboard-top {
+  padding: 14px 16px;
+}
+
+.back-arrow {
+  font-size: 22px;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+/* Center container */
+.dashboard-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Title */
+.portal-title {
+  color: #ffffff;
+  margin-bottom: 18px;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Employee card */
+.emp-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 2px solid #1e7f2d;
+}
+
+/* Rows */
+.emp-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 0;
+  font-size: 15px;
+}
+
+.emp-row span:first-child {
+  font-weight: 600;
+  color: #1e7f2d;
+}
+
+.emp-row span:last-child {
+  color: #000000;
+}

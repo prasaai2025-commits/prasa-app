@@ -1,0 +1,44 @@
+.menu-container {
+  background: #eef6ee;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1b5e20;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #1b5e20;
+}
+
+.menu-cards {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.menu-card {
+  width: 85%;
+  background: white;
+  border: 2px solid #1b5e20;
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-card:hover {
+  background: #1b5e20;
+  color: white;
+}

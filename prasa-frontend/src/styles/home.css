@@ -1,0 +1,51 @@
+.home-container {
+  height: 100vh;
+  background: linear-gradient(180deg, #0f3d2e, #145a3a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.home-card {
+  background: #ffffff;
+  width: 90%;
+  max-width: 360px;
+  padding: 40px 20px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.home-logo {
+  width: 110px;
+  margin-bottom: 20px;
+}
+
+.home-title {
+  color: #0f3d2e;
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.home-welcome {
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
+.profile-btn {
+  width: 100%;
+  padding: 14px;
+  background: #0f3d2e;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.profile-btn:hover {
+  background: #145a3a;
+}

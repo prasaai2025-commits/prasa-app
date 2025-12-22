@@ -1,0 +1,78 @@
+/* src/styles/expense.css */
+
+.expense-page {
+  min-height: 100vh;
+  background: linear-gradient(#2e7d5b, #dff1e6);
+
+  /* 🔥 ANDROID LAYOUT FIX */
+  display: flex;
+  flex-direction: column;     /* STACK CARDS */
+  align-items: center;
+  gap: 16px;                  /* space between cards */
+  padding-top: 80px;
+  padding-bottom: 40px;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.expense-card {
+  background: white;
+  width: 420px;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.expense-card h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.expense-card input,
+.expense-card textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.save-btn {
+  width: 100%;
+  background: #2e7d5b;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+table {
+  width: 100%;
+  font-size: 13px;
+}
+
+th, td {
+  padding: 6px;
+  text-align: center;
+}
+
+/* Make select same as input & textarea */
+.expense-card select {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background-color: #fff;
+}
