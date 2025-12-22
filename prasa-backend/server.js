@@ -12,20 +12,56 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+/* ================================
+   🔥 CORS CONFIG (WEB + ANDROID)
+================================ */
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://prasa-app.onrender.com",      // frontend if deployed
+  "capacitor://localhost",               // Android APK
+  "ionic://localhost",                   // Android WebView
+];
 
-// 🔥 REQUIRED FOR ALL LOGIN REQUESTS
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow mobile apps & tools like Postman (no origin)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS not allowed"), false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// 🔥 REQUIRED FOR PREFLIGHT (VERY IMPORTANT)
+app.options("*", cors());
+
+/* ================================
+   BODY PARSERS
+================================ */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ROUTES
+/* ================================
+   ROUTES (UNCHANGED)
+================================ */
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/ticket-system", ticketRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/admin", adminRoutes);
 
-// HEALTH CHECK
+/* ================================
+   HEALTH CHECK
+================================ */
 app.get("/", (req, res) => {
   res.send("PRASA API running");
 });
