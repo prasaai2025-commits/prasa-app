@@ -13,43 +13,29 @@ dotenv.config();
 const app = express();
 
 /* =========================
-   🔥 CORS CONFIG (CRITICAL)
-   Works for:
-   - localhost (web)
-   - Render frontend
-   - Android APK (no origin)
+   ✅ GLOBAL OPEN CORS (SAFE)
+   - fixes Android APK
+   - fixes web frontend
+   - fixes Postman
+   - NO origin callback
 ========================= */
-const corsOptions = {
-  origin: (origin, callback) => {
-    // allow requests with no origin (Android APK, Postman)
-    if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "https://prasa-api.onrender.com",
-      // add frontend URL here if deployed later
-    ];
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // 🔥 handle preflight
+// also handle preflight properly
+app.options("*", cors());
 
 // BODY PARSERS
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.text({ type: "*/*", limit: "5mb" }));   // <-- Android safe
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
-// ROUTES (UNCHANGED)
+// ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/ticket-system", ticketRoutes);
@@ -58,10 +44,14 @@ app.use("/api/admin", adminRoutes);
 
 // HEALTH CHECK
 app.get("/", (req, res) => {
-  res.send("PRASA API running");
+  res.json({
+    message: "PRASA API running ✔",
+    cors: "OPEN",
+    version: "CORS-FIXED-FINAL",
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 CORS FIXED — Backend running on port ${PORT}`);
 });
