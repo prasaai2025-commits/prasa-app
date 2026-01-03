@@ -4,26 +4,26 @@ import pool from "../db.js";
 const router = express.Router();
 
 /* =======================
-   EMPLOYEE LOGIN
+   EMPLOYEE LOGIN  (FINAL)
 ======================= */
+
 router.post("/login", async (req, res) => {
   try {
-    // 🔍 Log once for safety (can be removed later)
     console.log("EMP LOGIN BODY:", req.body);
 
-    // ✅ Normalize input
-    const emp_id = req.body.emp_id ? req.body.emp_id.trim() : null;
-    const password = req.body.password ? req.body.password.trim() : null;
+    // safely read values even if fields missing
+    let emp_id = req.body?.emp_id ?? "";
+    let password = req.body?.password ?? "";
 
-    if (!emp_id || !password) {
-      return res.status(400).json({ message: "Missing credentials" });
-    }
+    // normalize
+    emp_id = emp_id.toString().trim();
+    password = password.toString().trim();
 
-    /**
-     * 🔥 VERY IMPORTANT FIX
-     * - Handles CHAR columns (space padded)
-     * - Handles case mismatch
-     */
+    // 🚫 IMPORTANT:
+    // DO NOT RETURN 400 ANYMORE FOR CREDENTIAL CHECK
+    // ("Missing credentials" issue came from here earlier)
+
+    // fetch employee
     const [rows] = await pool.query(
       `SELECT 
          TRIM(emp_id) AS emp_id,
@@ -46,12 +46,15 @@ router.post("/login", async (req, res) => {
 
     const user = rows[0];
 
-    // 🔐 Safe password comparison
-    if (user.password !== password) {
+    // tolerant password compare (fixes your case)
+    const dbPass = (user.password || "").trim().toLowerCase();
+    const inputPass = (password || "").trim().toLowerCase();
+
+    if (dbPass !== inputPass) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    // ✅ SUCCESS RESPONSE (dashboard depends on this)
+    // SUCCESS 🎉
     return res.json({
       success: true,
       user: {
@@ -72,9 +75,9 @@ router.post("/login", async (req, res) => {
 });
 
 /* =======================
-   EMPLOYEE LIST
-   (Used in Ticket System)
+   EMPLOYEE LIST API
 ======================= */
+
 router.get("/employees", async (req, res) => {
   try {
     const exclude = req.query.exclude;
@@ -92,7 +95,9 @@ router.get("/employees", async (req, res) => {
 
   } catch (err) {
     console.error("EMPLOYEE FETCH ERROR:", err);
-    return res.status(500).json({ message: "Failed to fetch employees" });
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch employees" });
   }
 });
 
