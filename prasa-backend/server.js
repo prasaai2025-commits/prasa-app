@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import bodyParser from "body-parser";
 
 import authRoutes from "./routes/auth.routes.js";
 import expenseRoutes from "./routes/expenses.routes.js";
@@ -12,13 +13,22 @@ dotenv.config();
 
 const app = express();
 
-/* =========================
-   ✅ GLOBAL OPEN CORS (SAFE)
-   - fixes Android APK
-   - fixes web frontend
-   - fixes Postman
-   - NO origin callback
-========================= */
+/* ============================
+   ABSOLUTELY REQUIRED PARSERS
+============================ */
+// Handles JSON
+app.use(bodyParser.json());
+app.use(express.json());
+
+// Handles forms (mobile, axios, fetch variations)
+app.use(express.urlencoded({ extended: true }));
+
+// Extra fallback (in case Render sends as text)
+app.use(express.text({ type: "application/json" }));
+
+/* ============================
+   CORS
+============================ */
 app.use(
   cors({
     origin: "*",
@@ -27,31 +37,29 @@ app.use(
   })
 );
 
-// also handle preflight properly
 app.options("*", cors());
 
-// BODY PARSERS
-app.use(express.text({ type: "*/*", limit: "5mb" }));   // <-- Android safe
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true, limit: "5mb" }));
-
-// ROUTES
+/* ============================
+   ROUTES
+============================ */
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/ticket-system", ticketRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/admin", adminRoutes);
 
-// HEALTH CHECK
+/* ============================
+   HEALTH CHECK
+============================ */
 app.get("/", (req, res) => {
-  res.json({
-    message: "PRASA API running ✔",
-    cors: "OPEN",
-    version: "CORS-FIXED-FINAL",
-  });
+  res.json({ message: "PRASA API running ✔" });
 });
 
-const PORT = process.env.PORT || 5000;
+/* ============================
+   START SERVER
+============================ */
+const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 CORS FIXED — Backend running on port ${PORT}`);
+  console.log("🚀 Backend running on port", PORT);
 });
