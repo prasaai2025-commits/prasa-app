@@ -1,65 +1,43 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import bodyParser from "body-parser";
-
 import authRoutes from "./routes/auth.routes.js";
-import expenseRoutes from "./routes/expenses.routes.js";
-import ticketRoutes from "./routes/ticketSystem.routes.js";
-import historyRoutes from "./routes/history.routes.js";
-import adminRoutes from "./routes/admin.routes.js";
+import pool from "./db.js";
 
 dotenv.config();
 
 const app = express();
 
-/* ============================
-   ABSOLUTELY REQUIRED PARSERS
-============================ */
-// Handles JSON
-app.use(bodyParser.json());
-app.use(express.json());
-
-// Handles forms (mobile, axios, fetch variations)
+// Required for Render / JSON body issues
+app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Extra fallback (in case Render sends as text)
-app.use(express.text({ type: "application/json" }));
-
-/* ============================
-   CORS
-============================ */
+// CORS FIX
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.options("*", cors());
-
-/* ============================
-   ROUTES
-============================ */
-app.use("/api/auth", authRoutes);
-app.use("/api/expenses", expenseRoutes);
-app.use("/api/ticket-system", ticketRoutes);
-app.use("/api/history", historyRoutes);
-app.use("/api/admin", adminRoutes);
-
-/* ============================
-   HEALTH CHECK
-============================ */
+// health check
 app.get("/", (req, res) => {
-  res.json({ message: "PRASA API running ✔" });
+  res.send("PRASA Backend Running");
 });
 
-/* ============================
-   START SERVER
-============================ */
+// MAIN ROUTE
+app.use("/api/auth", authRoutes);
+
+// DB connect log only
+pool
+  .getConnection()
+  .then(() => console.log("✅ MySQL Connected"))
+  .catch((err) => console.error("❌ DB ERROR", err));
+
+// Render PORT support
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
-  console.log("🚀 Backend running on port", PORT);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
