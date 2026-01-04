@@ -4,7 +4,7 @@ import pool from "../db.js";
 const router = express.Router();
 
 /* =======================
-   EMPLOYEE LOGIN — FINAL
+   EMPLOYEE LOGIN (FINAL WORKING)
 ======================= */
 
 router.post("/login", async (req, res) => {
@@ -12,23 +12,23 @@ router.post("/login", async (req, res) => {
     console.log("🔥 LOGIN HIT");
     console.log("📩 RAW BODY =", req.body);
 
-    // Normalize input safely
-    const emp_id = (req.body.emp_id || "").trim().toUpperCase();
-    const password = (req.body.password || "").trim();
+    // safely read incoming values
+    let emp_id = req.body?.emp_id ?? "";
+    let password = req.body?.password ?? "";
 
-    console.log("🆔 CLEAN EMP_ID =", emp_id);
-    console.log("🔑 CLEAN PASSWORD =", password);
+    // normalize incoming values
+    emp_id = emp_id.toString().trim().toUpperCase();
+    password = password.toString().trim();
 
-    if (!emp_id || !password) {
-      return res.status(400).json({ message: "Missing credentials" });
-    }
+    console.log("🆔 NORMALIZED EMP_ID =", emp_id);
+    console.log("🔑 NORMALIZED PASSWORD =", password);
 
-    // MAIN FIX → trim + uppercase on BOTH SIDES
+    // --- DB LOOKUP WITH HARD TRIM (REMOVES HIDDEN CHARACTERS)
     const [rows] = await pool.query(
       `
       SELECT 
-        TRIM(UPPER(emp_id)) AS emp_id,
-        TRIM(password) AS password,
+        TRIM(REPLACE(REPLACE(REPLACE(UPPER(emp_id), CHAR(13), ''), CHAR(10), ''), ' ', '')) AS emp_id,
+        TRIM(REPLACE(REPLACE(REPLACE(password, CHAR(13), ''), CHAR(10), ''), ' ', '')) AS password,
         emp_name,
         email,
         phone,
@@ -36,7 +36,7 @@ router.post("/login", async (req, res) => {
         role,
         joining_date
       FROM Employees
-      WHERE TRIM(UPPER(emp_id)) = TRIM(UPPER(?))
+      WHERE TRIM(REPLACE(REPLACE(REPLACE(UPPER(emp_id), CHAR(13), ''), CHAR(10), ''), ' ', '')) = ?
       LIMIT 1
       `,
       [emp_id]
@@ -45,16 +45,24 @@ router.post("/login", async (req, res) => {
     console.log("📦 DB RESULT =", rows);
 
     if (!rows || rows.length === 0) {
+      console.log("❌ INVALID ID IN DB CHECK");
       return res.status(401).json({ message: "Invalid Employee ID" });
     }
 
     const user = rows[0];
 
-    if (user.password !== password) {
+    const dbPass = (user.password || "").trim();
+    const inputPass = (password || "").trim();
+
+    console.log("🔍 DB PASS =", dbPass);
+    console.log("🔍 INPUT PASS =", inputPass);
+
+    if (dbPass !== inputPass) {
+      console.log("❌ INVALID PASSWORD");
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    console.log("✅ LOGIN SUCCESS FOR =", user.emp_id);
+    console.log("✅ LOGIN SUCCESS FOR", user.emp_id);
 
     return res.json({
       success: true,
@@ -69,9 +77,36 @@ router.post("/login", async (req, res) => {
         joining_date: user.joining_date,
       },
     });
+
   } catch (err) {
     console.error("💥 LOGIN ERROR =", err);
     return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+/* =======================
+   EMPLOYEE LIST
+======================= */
+
+router.get("/employees", async (req, res) => {
+  try {
+    const exclude = req.query.exclude;
+
+    let sql =
+      "SELECT TRIM(emp_id) AS emp_id, emp_name FROM Employees";
+    let params = [];
+
+    if (exclude) {
+      sql += " WHERE TRIM(emp_id) != TRIM(?)";
+      params.push(exclude);
+    }
+
+    const [rows] = await pool.query(sql, params);
+    return res.json(rows);
+
+  } catch (err) {
+    console.error("EMPLOYEE FETCH ERROR:", err);
+    return res.status(500).json({ message: "Failed to fetch employees" });
   }
 });
 
