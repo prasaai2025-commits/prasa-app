@@ -5,7 +5,7 @@ const router = express.Router();
 
 /*
   ===========================
-  APPROVED EXPENSES HISTORY
+  APPROVED EXPENSE HISTORY
   ===========================
 */
 router.get("/expenses", async (req, res) => {
@@ -21,7 +21,7 @@ router.get("/expenses", async (req, res) => {
         voucher_path,
         status
       FROM expenses
-      WHERE status='approved'
+      WHERE LOWER(status)='approved'
     `;
 
     const params = [];
@@ -32,13 +32,13 @@ router.get("/expenses", async (req, res) => {
       params.push(emp_id);
     }
 
-    // date from filter
+    // date from
     if (from) {
       query += " AND expense_date >= ?";
       params.push(from);
     }
 
-    // date to filter
+    // date to
     if (to) {
       query += " AND expense_date <= ?";
       params.push(to);
@@ -55,10 +55,11 @@ router.get("/expenses", async (req, res) => {
   }
 });
 
+
 /*
-  ===========================
-  APPROVED / COMPLETED TICKETS
-  ===========================
+  ==========================================
+  APPROVED / COMPLETED TICKET HISTORY
+  ==========================================
 */
 router.get("/ticket-system", async (req, res) => {
   try {
@@ -73,24 +74,22 @@ router.get("/ticket-system", async (req, res) => {
         attachment_paths,
         status
       FROM ticket_system
-      WHERE status IN ('approved','completed')
+      WHERE LOWER(status) IN ('approved','completed')
     `;
 
     const params = [];
 
-    // employee filter
+    // created by or assigned to employee
     if (emp_id) {
-      query += " AND emp_id = ?";
-      params.push(emp_id);
+      query += " AND (emp_id = ? OR assigned_to = ?)";
+      params.push(emp_id, emp_id);
     }
 
-    // date from filter
     if (from) {
       query += " AND ticket_date >= ?";
       params.push(from);
     }
 
-    // date to filter
     if (to) {
       query += " AND ticket_date <= ?";
       params.push(to);
