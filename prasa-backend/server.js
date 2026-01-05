@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
 import expensesRoutes from "./routes/expenses.routes.js";
 import ticketSystemRoutes from "./routes/ticketSystem.routes.js";
-import adminRoutes from "./routes/admin.routes.js";   // ✅ ADMIN ROUTES ADDED
+import adminRoutes from "./routes/admin.routes.js";
+import historyRoutes from "./routes/history.routes.js";   // ✅ ADDED
 
 dotenv.config();
 
@@ -33,7 +34,10 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expensesRoutes);
 app.use("/api/ticket-system", ticketSystemRoutes);
-app.use("/api/admin", adminRoutes);          // ✅ THIS LINE FIXES YOUR 404
+app.use("/api/admin", adminRoutes);
+
+/* 🟢 HISTORY ROUTES — FIXED 404 */
+app.use("/api/history", historyRoutes);     // ✅ THIS LINE FIXED HISTORY
 
 /* ❗ fallback 404 */
 app.use((req, res) => {
