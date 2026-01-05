@@ -1,37 +1,42 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+
 import authRoutes from "./routes/auth.routes.js";
-import pool from "./db.js";
+import expensesRoutes from "./routes/expenses.routes.js";
+import ticketSystemRoutes from "./routes/ticketSystem.routes.js";
 
 dotenv.config();
 
 const app = express();
 
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
-
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type,Authorization",
   })
 );
 
+app.use(express.json());
+
+/* static files */
+app.use("/uploads", express.static("uploads"));
+
+/* 🟢 HEALTH CHECK */
 app.get("/", (req, res) => {
   res.send("PRASA Backend Running");
 });
 
+/* 🟢 API ROUTES */
 app.use("/api/auth", authRoutes);
+app.use("/api/expenses", expensesRoutes);
+app.use("/api/ticket-system", ticketSystemRoutes);
 
-pool
-  .getConnection()
-  .then(() => console.log("✅ MySQL Connected"))
-  .catch((err) => console.error("❌ DB ERROR", err));
-
-const PORT = process.env.PORT || 10000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+/* ❗ fallback 404 */
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log("🚀 Server running on port", PORT));
