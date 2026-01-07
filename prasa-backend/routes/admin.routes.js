@@ -12,27 +12,19 @@ router.post("/login", async (req, res) => {
   try {
     const { admin_id, password } = req.body;
 
-    // find admin by admin_id
     const [rows] = await pool.query(
       "SELECT * FROM admins WHERE admin_id = ?",
       [admin_id]
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: "Admin not found",
-      });
+      return res.status(401).json({ success: false, message: "Admin not found" });
     }
 
     const admin = rows[0];
 
-    // 🟢 SIMPLE PASSWORD CHECK (your DB stores plain passwords)
     if (admin.password !== password) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid password",
-      });
+      return res.status(401).json({ success: false, message: "Invalid password" });
     }
 
     res.json({
@@ -44,12 +36,10 @@ router.post("/login", async (req, res) => {
         email: admin.email,
       },
     });
+
   } catch (err) {
     console.error("ADMIN LOGIN ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: "Login failed",
-    });
+    res.status(500).json({ success: false, message: "Login failed" });
   }
 });
 
@@ -77,6 +67,7 @@ router.get("/summary", async (req, res) => {
       pendingExpenses: pendingExpenses?.c || 0,
       pendingTickets: pendingTickets?.c || 0,
     });
+
   } catch (err) {
     console.error("SUMMARY ERROR:", err);
     res.status(500).json({ message: "Failed to load summary" });
@@ -89,7 +80,6 @@ router.get("/summary", async (req, res) => {
   =========================================
 */
 
-// get pending expenses
 router.get("/expenses/pending", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -102,7 +92,6 @@ router.get("/expenses/pending", async (req, res) => {
   }
 });
 
-// approve expense
 router.put("/expenses/:id/approve", async (req, res) => {
   try {
     await pool.query(
@@ -116,7 +105,6 @@ router.put("/expenses/:id/approve", async (req, res) => {
   }
 });
 
-// reject expense
 router.put("/expenses/:id/reject", async (req, res) => {
   try {
     await pool.query(
@@ -136,7 +124,6 @@ router.put("/expenses/:id/reject", async (req, res) => {
   =========================================
 */
 
-// get pending tickets
 router.get("/tickets/pending", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -149,7 +136,19 @@ router.get("/tickets/pending", async (req, res) => {
   }
 });
 
-// approve ticket
+/* 🆕 APPROVED TICKET LIST */
+router.get("/tickets/approved", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM ticket_system WHERE status = 'approved' ORDER BY ticket_date DESC"
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("TICKET APPROVED ERROR:", err);
+    res.status(500).json({ message: "Failed to load approved tickets" });
+  }
+});
+
 router.put("/tickets/:id/approve", async (req, res) => {
   try {
     await pool.query(
@@ -163,7 +162,6 @@ router.put("/tickets/:id/approve", async (req, res) => {
   }
 });
 
-// reject ticket
 router.put("/tickets/:id/reject", async (req, res) => {
   try {
     await pool.query(
