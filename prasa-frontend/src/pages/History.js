@@ -5,25 +5,23 @@ import "../styles/expense.css";
 
 export default function History() {
   const navigate = useNavigate();
+  const emp = JSON.parse(localStorage.getItem("employee"));
+  const emp_id = emp?.emp_id;
 
   const [type, setType] = useState("expenses");
   const [data, setData] = useState([]);
-
-  const [filter, setFilter] = useState({
-    from: "",
-    to: "",
-  });
+  const [filter, setFilter] = useState({ from: "", to: "" });
 
   const fetchHistory = async () => {
     try {
-      const params = {};
+      const params = { emp_id };
       if (filter.from) params.from = filter.from;
       if (filter.to) params.to = filter.to;
 
       const res = await api.get(`/history/${type}`, { params });
       setData(res.data || []);
     } catch (err) {
-      console.error("FETCH HISTORY ERROR:", err);
+      console.error(err);
       setData([]);
     }
   };
@@ -32,160 +30,90 @@ export default function History() {
     fetchHistory();
   }, [type]);
 
-  const downloadMonthlyPDF = async () => {
-    try {
-      const res = await api.get(`/history/${type}/monthly-pdf`, {
-        responseType: "blob",
-      });
-
-      const blob = new Blob([res.data], { type: "application/pdf" });
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${type}-history.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      alert("PDF download failed");
-    }
-  };
-
   return (
     <div className="expense-page">
       <button className="back-btn" onClick={() => navigate("/menu")}>
         ←
       </button>
 
-      <div className="expense-card" style={{ width: "90%", maxWidth: 900 }}>
+      <div className="expense-card">
         <h2 style={{ textAlign: "center" }}>History</h2>
 
         {/* TABS */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
+        <div className="expense-tabs">
           <button
-            className="save-btn"
-            style={{ background: type === "expenses" ? "#2f7d57" : "#999" }}
+            className={type === "expenses" ? "tab-active" : "tab-inactive"}
             onClick={() => setType("expenses")}
           >
             Expenses
           </button>
-
           <button
-            className="save-btn"
-            style={{ background: type === "bills" ? "#2f7d57" : "#999" }}
+            className={type === "bills" ? "tab-active" : "tab-inactive"}
             onClick={() => setType("bills")}
           >
             Bills
           </button>
-
           <button
-            className="save-btn"
-            style={{ background: type === "ticket-system" ? "#2f7d57" : "#999" }}
+            className={type === "ticket-system" ? "tab-active" : "tab-inactive"}
             onClick={() => setType("ticket-system")}
           >
             Ticket System
           </button>
         </div>
 
-        {/* FILTERS */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
-          <input
-            type="date"
-            value={filter.from}
-            onChange={(e) => setFilter({ ...filter, from: e.target.value })}
-          />
-          <input
-            type="date"
-            value={filter.to}
-            onChange={(e) => setFilter({ ...filter, to: e.target.value })}
-          />
-
-          <button className="save-btn" onClick={fetchHistory}>
-            Apply
-          </button>
-
-          <button className="save-btn" onClick={downloadMonthlyPDF}>
-            Download PDF
-          </button>
+        {/* FILTER */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <input type="date" value={filter.from}
+            onChange={(e) => setFilter({ ...filter, from: e.target.value })} />
+          <input type="date" value={filter.to}
+            onChange={(e) => setFilter({ ...filter, to: e.target.value })} />
+          <button className="primary-btn" onClick={fetchHistory}>Apply</button>
         </div>
 
-        {/* TABLE */}
-        <table width="100%" border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>Date</th>
-
-              {type === "bills" && <th>Type</th>}
-
-              {type === "ticket-system" && <th>Assigned To</th>}
-
-              <th>Description</th>
-
-              {type !== "ticket-system" && <th>Amount</th>}
-
-              {type === "bills" && <th>Download</th>}
-              {type === "ticket-system" && <th>Attachments</th>}
-
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.length === 0 && (
+        {/* DESKTOP TABLE */}
+        <div className="desktop-only">
+          <table width="100%" border="1" cellPadding="8">
+            <thead>
               <tr>
-                <td colSpan="7" align="center">
-                  No records
-                </td>
+                <th>Date</th>
+                {type === "bills" && <th>Type</th>}
+                {type === "ticket-system" && <th>Assigned To</th>}
+                <th>Description</th>
+                {type !== "ticket-system" && <th>Amount</th>}
+                <th>Status</th>
               </tr>
-            )}
+            </thead>
+            <tbody>
+              {data.length === 0 && (
+                <tr><td colSpan="6" align="center">No records</td></tr>
+              )}
+              {data.map((r) => (
+                <tr key={r.id}>
+                  <td>{new Date(r.date).toLocaleDateString()}</td>
+                  {type === "bills" && <td>{r.bill_type}</td>}
+                  {type === "ticket-system" && <td>{r.assigned_to}</td>}
+                  <td>{r.description}</td>
+                  {type !== "ticket-system" && <td>{r.amount}</td>}
+                  <td>{r.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-            {data.map((row) => (
-              <tr key={row.id}>
-                <td>{new Date(row.date).toLocaleDateString()}</td>
-
-                {type === "bills" && <td>{row.bill_type}</td>}
-
-                {type === "ticket-system" && <td>{row.assigned_to}</td>}
-
-                <td>{row.description}</td>
-
-                {type !== "ticket-system" && <td>{row.amount}</td>}
-
-                {type === "bills" && (
-                  <td>
-                    <a
-                      href={`http://localhost:5000${row.file_path}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Download
-                    </a>
-                  </td>
-                )}
-
-                {type === "ticket-system" && (
-                  <td>
-                    {row.attachment_paths
-                      ?.split(",")
-                      .map((f, i) => (
-                        <div key={i}>
-                          <a
-                            href={`http://localhost:5000${f}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            File {i + 1}
-                          </a>
-                        </div>
-                      ))}
-                  </td>
-                )}
-
-                <td>{row.status || "Approved"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* ANDROID CARDS */}
+        <div className="mobile-only mobile-list">
+          {data.map((r) => (
+            <div key={r.id} className="mobile-card">
+              <div className="mobile-row"><b>Date:</b> {new Date(r.date).toLocaleDateString()}</div>
+              {type === "bills" && <div className="mobile-row"><b>Type:</b> {r.bill_type}</div>}
+              {type === "ticket-system" && <div className="mobile-row"><b>Assigned:</b> {r.assigned_to}</div>}
+              <div className="mobile-row"><b>Description:</b> {r.description}</div>
+              {type !== "ticket-system" && <div className="mobile-row"><b>Amount:</b> ₹{r.amount}</div>}
+              <div className="mobile-row"><b>Status:</b> {r.status}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

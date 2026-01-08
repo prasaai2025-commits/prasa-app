@@ -1,78 +1,84 @@
-/* src/styles/expense.css */
-
 .expense-page {
   min-height: 100vh;
-  background: linear-gradient(#2e7d5b, #dff1e6);
-
-  /* 🔥 ANDROID LAYOUT FIX */
+  background: linear-gradient(#2f855a, #b7e4c7);
   display: flex;
-  flex-direction: column;     /* STACK CARDS */
-  align-items: center;
-  gap: 16px;                  /* space between cards */
-  padding-top: 80px;
-  padding-bottom: 40px;
-}
-
-.back-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: white;
-  border-radius: 50%;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
+  justify-content: center;
+  padding: 12px;
 }
 
 .expense-card {
-  background: white;
-  width: 420px;
-  padding: 20px;
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
   border-radius: 18px;
+  padding: 16px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
-.expense-card h2 {
-  text-align: center;
-  margin-bottom: 15px;
+.back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
 }
 
-.expense-card input,
-.expense-card textarea {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+.expense-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.save-btn {
-  width: 100%;
-  background: #2e7d5b;
+.tab-active {
+  flex: 1;
+  background: #2f855a;
+  color: white;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+}
+
+.tab-inactive {
+  flex: 1;
+  background: #e6e6e6;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+}
+
+.primary-btn {
+  background: #2f855a;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 10px 14px;
   border-radius: 10px;
-  margin: 10px 0;
 }
 
-table {
-  width: 100%;
-  font-size: 13px;
+/* RESPONSIVE SWITCH */
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
+@media (max-width: 768px) {
+  .desktop-only { display: none; }
+  .mobile-only { display: block; }
 }
 
-th, td {
-  padding: 6px;
-  text-align: center;
+/* MOBILE CARDS */
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* Make select same as input & textarea */
-.expense-card select {
-  width: 100%;
+.mobile-card {
+  background: #f4f6f5;
+  border-radius: 12px;
   padding: 12px;
-  font-size: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  margin-bottom: 14px;
-  background-color: #fff;
+  font-size: 14px;
+}
+
+.mobile-row {
+  margin-bottom: 6px;
 }
