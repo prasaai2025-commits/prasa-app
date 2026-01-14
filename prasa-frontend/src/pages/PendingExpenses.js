@@ -8,49 +8,72 @@ export default function PendingExpenses() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ CORRECT WAY
   const employee = JSON.parse(localStorage.getItem("employee"));
   const emp_id = employee?.emp_id;
 
   useEffect(() => {
-    // 🔐 guard
-    if (!emp_id) {
-      navigate("/");
-      return;
-    }
+    if (!emp_id) return;   // ❌ do NOT redirect
     loadPending();
   }, []);
 
   const loadPending = async () => {
     try {
       const res = await api.get("/expenses/active", {
-        params: { emp_id },
+        params: { emp_id }
       });
       setRows(res.data || []);
     } catch (e) {
-      console.log("pending expense error", e);
+      console.error("Pending expense error", e);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="expense-page" style={{ position: "relative" }}>
-      {/* BACK → EXPENSES */}
-      <button
-        onClick={() => navigate("/expenses")}
-        className="back-btn"
-        style={{ position: "absolute", top: 15, left: 15 }}
-      >
-        ←
-      </button>
+    <div className="expense-page">
+      {/* White Card */}
+      <div className="expense-card">
 
-      <div className="expense-card" style={{ marginTop: 60 }}>
-        <h3>Pending / Rejected Expenses</h3>
+            {/* 🔙 Title + Arrow (pending request)) */}
+        <div className="expense-header" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button
+            onClick={() => navigate("/expenses")}
+            style={{
+              background: "#2f855a",
+              color: "#fff",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              fontSize: "20px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}
+          >
+            ←
+          </button>
 
-        {loading && <p>Loading…</p>}
+          <h3 style={{ margin: 0, fontWeight: "600" }}>
+            Pending / Rejected Expenses
+          </h3>
+        </div>
 
-        <div className="mobile-list">
+        {/* Scrollable list */}
+        <div
+          className="expense-scroll"
+          style={{
+            marginTop: "15px",
+            maxHeight: "70vh",      // ✅ Android-safe scrolling
+            overflowY: "auto",
+            paddingRight: "6px"
+          }}
+        >
+          {loading && <p>Loading...</p>}
+
           {rows.map((r) => (
             <div key={r.id} className="mobile-card">
               <div><b>Date:</b> {r.expense_date}</div>
@@ -60,8 +83,9 @@ export default function PendingExpenses() {
             </div>
           ))}
 
-          {!loading && rows.length === 0 && <p>No pending items.</p>}
+          {!loading && rows.length === 0 && <p>No pending requests</p>}
         </div>
+
       </div>
     </div>
   );

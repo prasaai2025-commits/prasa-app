@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">prasa-app</string>
-    <string name="title_activity_main">prasa-app</string>
+    <string name="app_name">PRASA</string>
+    <string name="title_activity_main">PRASA</string>
     <string name="package_name">com.prasa.app</string>
     <string name="custom_url_scheme">com.prasa.app</string>
 </resources>

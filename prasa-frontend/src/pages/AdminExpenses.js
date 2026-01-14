@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
-import { queueAdminAction } from "../adminOffline";
 
 export default function AdminExpenses() {
   const [rows, setRows] = useState([]);
@@ -9,79 +8,56 @@ export default function AdminExpenses() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const admin = localStorage.getItem("admin");
-    if (!admin) navigate("/");
-
+    const admin = JSON.parse(localStorage.getItem("admin"));
+    if (!admin || !admin.admin_id) {
+      navigate("/");
+      return;
+    }
     loadPending();
   }, []);
 
   const loadPending = async () => {
-    try {
-      const res = await api.get("/admin/expenses/pending");
-      setRows(res.data || []);
+    const res = await api.get("/admin/expenses/pending");
 
-      let sum = 0;
-      (res.data || []).forEach((r) => (sum += Number(r.amount || 0)));
-      setTotal(sum);
-    } catch (e) {
-      console.error(e);
-    }
+    const sorted = (res.data || []).sort((a, b) =>
+      (a.emp_id || "").localeCompare(b.emp_id || "")
+    );
+
+    setRows(sorted);
+
+    let sum = 0;
+    sorted.forEach(r => sum += Number(r.amount || 0));
+    setTotal(sum);
   };
 
   const approve = async (id) => {
-    try {
-      await api.put(`/admin/expenses/${id}/approve`);
-      loadPending();
-    } catch (e) {
-      await queueAdminAction({
-        type: "expense-approve",
-        url: `/admin/expenses/${id}/approve`
-      });
-      alert("Saved offline. Will sync when internet is back.");
-    }
+    await api.put(`/admin/expenses/${id}/approve`);
+    loadPending();
   };
 
   const reject = async (id) => {
-    try {
-      await api.put(`/admin/expenses/${id}/reject`);
-      loadPending();
-    } catch (e) {
-      await queueAdminAction({
-        type: "expense-reject",
-        url: `/admin/expenses/${id}/reject`
-      });
-      alert("Saved offline. Will sync when internet is back.");
-    }
+    await api.put(`/admin/expenses/${id}/reject`);
+    loadPending();
   };
 
   return (
     <div className="expense-page">
-      <div className="expense-card">
+      <div className="expense-card" style={{ height: "85vh", display: "flex", flexDirection: "column" }}>
 
-        {/* 🔙 BACK ARROW */}
-        <div
-          style={{
-            fontSize: "24px",
-            color: "#ffffff",
-            cursor: "pointer",
-            marginBottom: "10px",
-            width: "fit-content"
-          }}
-          onClick={() => navigate("/admin/dashboard")}
-        >
-          ←
+        {/* 🔹 Arrow + Title row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontSize: 22, cursor: "pointer" }} onClick={() => navigate("/admin-dashboard")}>
+            ←
+          </div>
+          <h2>Expense Approvals</h2>
         </div>
 
-        <h2>Expense Approvals</h2>
+        <p><b>Total Pending:</b> ₹{total}</p>
 
-        <p><b>Total Pending Amount:</b> ₹{total}</p>
-
-        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-          {rows.map((r) => (
-            <div
-              key={r.id}
-              style={{ borderBottom: "1px solid #ccc", paddingBottom: 10, marginBottom: 10 }}
-            >
+        {/* 🔹 Scrollable list */}
+        <div style={{ flex: 1, overflowY: "auto", paddingRight: 5 }}>
+          {rows.map(r => (
+            <div key={r.id} style={{ borderBottom: "1px solid #ddd", padding: 10 }}>
               <p><b>Employee:</b> {r.emp_id}</p>
               <p><b>Date:</b> {r.expense_date}</p>
               <p><b>Amount:</b> ₹{r.amount}</p>

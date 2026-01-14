@@ -1,56 +1,59 @@
 /* Page background */
 .dashboard-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #0f3d2e, #eaf5ea);
-  display: flex;
-  flex-direction: column;
-}
-
-/* Top bar */
-.dashboard-top {
-  padding: 14px 16px;
-}
-
-.back-arrow {
-  font-size: 22px;
-  cursor: pointer;
-  color: #ffffff;
-}
-
-/* Center container */
-.dashboard-center {
-  flex: 1;
+  background: #9fd3b4;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* Top card wrapper */
+.dashboard-top-card {
+  width: 100%;
+  display: flex;
   justify-content: center;
+  margin-top: 20px;
+}
+
+/* White container */
+.emp-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px 18px 20px 18px;
+  width: 90%;
+  max-width: 380px;
+  border: 2px solid #1e7f2d;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Header inside card */
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Back arrow */
+.back-arrow {
+  font-size: 22px;
+  cursor: pointer;
+  color: #0f3d2e;
+  margin-right: 10px;
 }
 
 /* Title */
 .portal-title {
-  color: #ffffff;
-  margin-bottom: 18px;
+  font-size: 16px;
   font-weight: 600;
-  font-size: 18px;
-}
-
-/* Employee card */
-.emp-card {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 22px;
-  width: 90%;
-  max-width: 380px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  border: 2px solid #1e7f2d;
+  color: #0f3d2e;
 }
 
 /* Rows */
 .emp-row {
   display: flex;
   justify-content: space-between;
-  padding: 9px 0;
-  font-size: 15px;
+  padding: 8px 0;
+  font-size: 14px;
 }
 
 .emp-row span:first-child {
